@@ -279,11 +279,6 @@ class Boxes3DTestCase(TestCase):
         self.assertAllClose(y, np_xyz[..., 1])
         self.assertAllClose(z, np_xyz[..., 2])
 
-    @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ
-        or os.environ["TEST_CUSTOM_OPS"] != "true",
-        reason="Requires binaries compiled from source",
-    )
     def test_group_points(self):
         # rotate the first box by pi / 2 so dim_x and dim_y are swapped.
         # The last box is a cube rotated by 45 degrees.

@@ -64,11 +64,6 @@ def get_points_boxes():
 
 
 class WithinBox3DTest(TestCase):
-    @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ
-        or os.environ["TEST_CUSTOM_OPS"] != "true",
-        reason="Requires binaries compiled from source",
-    )
     def test_unbatched_unrotated(self):
         boxes = np.array(
             [
@@ -93,11 +88,6 @@ class WithinBox3DTest(TestCase):
         res = keras_cv.point_cloud.within_box3d_index(points, boxes)
         self.assertAllEqual([0, 0, -1, 0, -1, 1, -1], res)
 
-    @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ
-        or os.environ["TEST_CUSTOM_OPS"] != "true",
-        reason="Requires binaries compiled from source",
-    )
     def test_unbatched_rotated(self):
         # a box rotated with 45 degree, the intersection with x and y axis
         # is [2*sqrt(2), 0] and [0, 2*sqrt(2)]
@@ -120,11 +110,6 @@ class WithinBox3DTest(TestCase):
         res = keras_cv.point_cloud.within_box3d_index(points, boxes)
         self.assertAllClose([0, 0, -1, 0, -1], res)
 
-    @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ
-        or os.environ["TEST_CUSTOM_OPS"] != "true",
-        reason="Requires binaries compiled from source",
-    )
     def test_batched_unrotated(self):
         boxes = np.array(
             [
@@ -154,11 +139,6 @@ class WithinBox3DTest(TestCase):
             [[0, 0, -1, 0, -1, -1, -1], [-1, -1, -1, -1, -1, 0, -1]], res
         )
 
-    @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ
-        or os.environ["TEST_CUSTOM_OPS"] != "true",
-        reason="Requires binaries compiled from source",
-    )
     def test_batched_rotated(self):
         # a box rotated with 45 degree, the intersection with x and y axis
         # is [2*sqrt(2), 0] and [0, 2*sqrt(2)]
@@ -185,11 +165,6 @@ class WithinBox3DTest(TestCase):
         res = keras_cv.point_cloud.within_box3d_index(points, boxes)
         self.assertAllEqual([[0, 0, -1, 0, -1], [-1, -1, -1, -1, -1]], res)
 
-    @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ
-        or os.environ["TEST_CUSTOM_OPS"] != "true",
-        reason="Requires binaries compiled from source",
-    )
     def test_many_points(self):
         points, boxes = get_points_boxes()
 
@@ -197,11 +172,6 @@ class WithinBox3DTest(TestCase):
             res = keras_cv.point_cloud.within_box3d_index(points, boxes)
             self.assertAllClose(res.shape, points.shape[:1])
 
-    @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ
-        or os.environ["TEST_CUSTOM_OPS"] != "true",
-        reason="Requires binaries compiled from source",
-    )
     @pytest.mark.extra_large
     def test_equal(self):
         for _ in range(10000):

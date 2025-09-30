@@ -23,11 +23,6 @@ from keras_cv.src.tests.test_case import TestCase
 
 
 class IoU3DTest(TestCase):
-    @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ
-        or os.environ["TEST_CUSTOM_OPS"] != "true",
-        reason="Requires binaries compiled from source",
-    )
     def testOpCall(self):
         # Predicted boxes:
         # 0: a 2x2x2 box centered at 0,0,0, rotated 0 degrees
