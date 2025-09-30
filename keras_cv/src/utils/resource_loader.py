@@ -22,7 +22,7 @@ import warnings
 
 import tensorflow as tf
 
-TF_VERSION_FOR_ABI_COMPATIBILITY = "2.13"
+TF_VERSION_FOR_ABI_COMPATIBILITY = "2.17"
 abi_warning_already_raised = False
 
 
@@ -32,17 +32,62 @@ def get_project_root():
 
 
 def get_path_to_datafile(path):
-    """Get the path to the specified file in the data dependencies.
+    """Resolve the absolute path to a resource within the KerasCV package.
 
-    The path is relative to keras_cv/
+    When developing from source the compiled custom op shared objects live under
+    ``bazel-bin`` instead of the Python package tree.  This helper now searches
+    a small set of well-known locations so that tests and binaries can locate
+    those artifacts without manual copying.
 
     Args:
-      path: a string resource path relative to keras_cv/
+        path: Resource path expressed relative to ``keras_cv/``.
+
     Returns:
-      The path to the specified data file
+        Absolute filesystem path to the requested resource.
+
+    Raises:
+        FileNotFoundError: If the resource cannot be located in any of the
+        supported search locations.
     """
+
+    normalized_path = path.replace("/", os.sep)
+
     root_dir = get_project_root()
-    return os.path.join(root_dir, path.replace("/", os.sep))
+    package_root = os.path.dirname(root_dir)
+    workspace_root = os.path.dirname(package_root)
+
+    search_roots = []
+
+    # Allow overriding the search root explicitly for custom setups.
+    override_root = os.environ.get("KERAS_CV_DATA_ROOT")
+    if override_root:
+        search_roots.append(override_root)
+
+    search_roots.extend(
+        [
+            root_dir,
+            package_root,
+            os.path.join(workspace_root, "bazel-bin", "keras_cv", "src"),
+        ]
+    )
+
+    attempted_paths = []
+    for candidate_root in search_roots:
+        if not candidate_root:
+            continue
+
+        candidate = os.path.normpath(
+            os.path.join(candidate_root, normalized_path)
+        )
+        attempted_paths.append(candidate)
+        if os.path.exists(candidate):
+            return candidate
+
+    raise FileNotFoundError(
+        "Unable to locate resource '{}'. Looked in: {}".format(
+            path, ", ".join(attempted_paths)
+        )
+    )
 
 
 class LazySO:
