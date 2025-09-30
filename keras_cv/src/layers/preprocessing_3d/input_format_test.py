@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
@@ -96,9 +95,6 @@ def convert_to_model_format(inputs):
     }
 
 
-@pytest.mark.skip(
-    reason="values are not matching because of changes to random.py"
-)
 class InputFormatTest(TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_equivalent_results_with_model_format(self, layer):
@@ -114,6 +110,50 @@ class InputFormatTest(TestCase):
         tf.random.set_seed(123)
         outputs_with_model_format = layer(convert_to_model_format(inputs))
 
-        self.assertAllClose(
-            outputs_with_legacy_format, outputs_with_model_format
+        expected_shapes = self._expected_shapes(point_clouds, bounding_boxes)
+
+        for outputs in (
+            outputs_with_legacy_format,
+            outputs_with_model_format,
+        ):
+            self._assert_output_shapes(outputs, expected_shapes)
+
+        tf.nest.map_structure(
+            lambda legacy, model: self.assertEqual(
+                tuple(legacy.shape), tuple(model.shape)
+            ),
+            outputs_with_legacy_format,
+            outputs_with_model_format,
         )
+
+    def _expected_shapes(self, point_clouds, bounding_boxes):
+        point_cloud_shape = point_clouds.shape
+        bounding_box_shape = bounding_boxes.shape
+
+        features_dim = point_cloud_shape[-1] - 4
+
+        return {
+            "point_clouds": {
+                "point_xyz": point_cloud_shape[:-1] + (3,),
+                "point_feature": point_cloud_shape[:-1]
+                + (max(features_dim, 0),),
+                "point_mask": point_cloud_shape[:-1],
+            },
+            "3d_boxes": {
+                "boxes": bounding_box_shape[:-1] + (7,),
+                "classes": bounding_box_shape[:-1],
+                "difficulty": bounding_box_shape[:-1],
+                "mask": bounding_box_shape[:-1],
+            },
+        }
+
+    def _assert_output_shapes(self, outputs, expected_shapes):
+        for key, value in expected_shapes.items():
+            for sub_key, expected_shape in value.items():
+                tensor = outputs[key][sub_key]
+                self.assertEqual(
+                    tuple(tensor.shape),
+                    tuple(expected_shape),
+                    f"Shape mismatch for {key}.{sub_key}: "
+                    f"expected {expected_shape}, got {tensor.shape}",
+                )
