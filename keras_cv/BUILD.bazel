@@ -1,0 +1,21 @@
+package(default_visibility = ["//visibility:public"])
+
+# Everything under keras_cv/, except junk
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**/*"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+            "**/*~",
+            "**/.DS_Store",
+        ],
+    ),
+)
+
+# If the root BUILD references //keras_cv:keras_cv, this alias will satisfy it.
+alias(
+    name = "keras_cv",
+    actual = ":all_files",
+)
