@@ -8,5 +8,6 @@ sh_binary(
         "setup.cfg",
         "setup.py",
         "//keras_cv",
+        "//keras_cv/src:keras_cv",
     ],
 )
